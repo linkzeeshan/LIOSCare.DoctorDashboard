@@ -1,0 +1,80 @@
+@model DoctorProfileDto
+@{ ViewData["Title"] = "Settings"; }
+
+<section class="lc-page-head">
+    <div>
+        <span>Account &amp; notifications</span>
+        <h1>Settings</h1>
+        <p>Manage your account overview and mobile push notification preferences.</p>
+    </div>
+</section>
+
+<div class="lc-grid lc-grid-2">
+
+    <section class="lc-card">
+        <header class="lc-card-head">
+            <h2>Account</h2>
+            <span class="lc-badge lc-badge-info">doctor</span>
+        </header>
+        <div class="lc-meta-grid">
+            <div><span>Full name</span><strong>@Model.FullName</strong></div>
+            <div><span>Email</span><strong>@Model.Email</strong></div>
+            <div><span>Specialization</span><strong>@(Model.Specializations.Count() == 0 ? "—" : Model.Specializations)</strong></div>
+            <div>
+                <span>Queue availability</span>
+                <strong>
+                    @if (Model.IsAvailable)
+                    {
+                        <span class="lc-badge lc-badge-success"><i class="bi bi-circle-fill" style="font-size:8px;"></i> Available</span>
+                    }
+                    else
+                    {
+                        <span class="lc-badge lc-badge-danger"><i class="bi bi-circle" style="font-size:8px;"></i> Paused</span>
+                    }
+                </strong>
+            </div>
+        </div>
+        <div style="margin-top:16px;border-top:1px solid var(--lc-border-light);padding-top:14px;">
+            <a asp-controller="DoctorProfile" asp-action="Index" class="lc-btn lc-btn-outline" style="font-size:13px;">
+                <i class="bi bi-person-gear"></i> Edit profile &amp; availability
+            </a>
+        </div>
+    </section>
+
+    <section class="lc-card lc-form-card">
+        <header class="lc-card-head" style="margin-bottom:16px;">
+            <h2>Notification preferences</h2>
+            <span class="lc-badge lc-badge-warning">Mobile push</span>
+        </header>
+        <form method="post" asp-action="Notifications">
+            @Html.AntiForgeryToken()
+            <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                    <input type="checkbox" name="quickChatPush" value="true" checked style="width:16px;height:16px;" />
+                    <div>
+                        <strong style="display:block;">Quick chat queue alerts</strong>
+                        <small style="color:var(--lc-muted);">New requests in the pool or sent directly to you</small>
+                    </div>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                    <input type="checkbox" name="bookingPush" value="true" checked style="width:16px;height:16px;" />
+                    <div>
+                        <strong style="display:block;">Direct booking requests</strong>
+                        <small style="color:var(--lc-muted);">New paid booking requests from users</small>
+                    </div>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                    <input type="checkbox" name="reportReminders" value="true" checked style="width:16px;height:16px;" />
+                    <div>
+                        <strong style="display:block;">Session report reminders</strong>
+                        <small style="color:var(--lc-muted);">Reminders to file reports after completed sessions</small>
+                    </div>
+                </label>
+            </div>
+            <button class="lc-btn lc-btn-primary" type="submit">
+                <i class="bi bi-bell-fill"></i> Save preferences
+            </button>
+        </form>
+    </section>
+
+</div>

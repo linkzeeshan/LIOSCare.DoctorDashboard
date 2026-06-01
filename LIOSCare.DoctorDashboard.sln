@@ -1,0 +1,39 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11709.299 stable
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LIOSCare.DoctorDashboard.Domain", "src\LIOSCare.DoctorDashboard.Domain\LIOSCare.DoctorDashboard.Domain.csproj", "{D1826421-96E1-46D5-9E2E-6C8123D7C1A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LIOSCare.DoctorDashboard.Application", "src\LIOSCare.DoctorDashboard.Application\LIOSCare.DoctorDashboard.Application.csproj", "{B5B21762-30B6-4029-9755-A0D55634D347}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LIOSCare.DoctorDashboard.Infrastructure", "src\LIOSCare.DoctorDashboard.Infrastructure\LIOSCare.DoctorDashboard.Infrastructure.csproj", "{58E20B2E-D051-41EC-847F-70DF6B69ECF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LIOSCare.DoctorDashboard.Web", "src\LIOSCare.DoctorDashboard.Web\LIOSCare.DoctorDashboard.Web.csproj", "{5C964752-8A9E-49A4-9686-94DC20ED71CF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D1826421-96E1-46D5-9E2E-6C8123D7C1A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1826421-96E1-46D5-9E2E-6C8123D7C1A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1826421-96E1-46D5-9E2E-6C8123D7C1A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1826421-96E1-46D5-9E2E-6C8123D7C1A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5B21762-30B6-4029-9755-A0D55634D347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5B21762-30B6-4029-9755-A0D55634D347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5B21762-30B6-4029-9755-A0D55634D347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5B21762-30B6-4029-9755-A0D55634D347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58E20B2E-D051-41EC-847F-70DF6B69ECF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58E20B2E-D051-41EC-847F-70DF6B69ECF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58E20B2E-D051-41EC-847F-70DF6B69ECF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58E20B2E-D051-41EC-847F-70DF6B69ECF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C964752-8A9E-49A4-9686-94DC20ED71CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C964752-8A9E-49A4-9686-94DC20ED71CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C964752-8A9E-49A4-9686-94DC20ED71CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C964752-8A9E-49A4-9686-94DC20ED71CF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

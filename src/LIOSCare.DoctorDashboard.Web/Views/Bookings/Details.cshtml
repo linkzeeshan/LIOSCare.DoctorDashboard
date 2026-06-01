@@ -1,0 +1,179 @@
+@model BookingDto
+@{
+    ViewData["Title"] = "Booking Detail";
+    var isPending     = Model.Status == "Pending";
+    var isAccepted    = Model.Status == "Accepted";
+    var isDeclined    = Model.Status == "Declined";
+    var isCompleted   = Model.Status == "Completed";
+    var isScheduled   = isAccepted && Model.ScheduledAt.HasValue;
+    var needsSchedule = isAccepted && Model.RequiresSchedule && !Model.ScheduledAt.HasValue;
+    var statusTone    = isAccepted || isCompleted ? "success" : isDeclined ? "danger" : "warning";
+    var payTone       = Model.PaymentStatus switch
+    {
+        "Paid"          => "success",
+        "Refunded"      => "info",
+        "RefundPending" => "warning",
+        _               => ""
+    };
+    var nowIso = DateTimeOffset.UtcNow.AddMinutes(1).ToString("yyyy-MM-ddTHH:mm");
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>Direct booking</span>
+        <h1>@Model.UserFullName</h1>
+        <p>
+            <span class="lc-badge lc-badge-info">@Model.TierName</span>
+            @if (!string.IsNullOrEmpty(payTone))
+            {
+                <span class="lc-badge lc-badge-@payTone" style="margin-left:4px;">$@Model.AmountUsd · @Model.PaymentStatus</span>
+            }
+            else
+            {
+                <span class="lc-badge" style="margin-left:4px;">$@Model.AmountUsd · @Model.PaymentStatus</span>
+            }
+        </p>
+    </div>
+    <a asp-action="Index" class="lc-btn lc-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</section>
+
+<div class="lc-grid lc-grid-2-1">
+
+    <section class="lc-card">
+        <header class="lc-card-head">
+            <h2>User note</h2>
+            <span class="lc-badge lc-badge-@statusTone">@Model.Status</span>
+        </header>
+        <p class="lc-large-note" style="margin-bottom:20px;">@(Model.Notes ?? "No note provided by the user.")</p>
+
+        <div class="lc-meta-grid">
+            <div><span>Status</span><strong><span class="lc-badge lc-badge-@statusTone">@Model.Status</span></strong></div>
+            <div>
+                <span>Payment</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(payTone))
+                    {
+                        <span class="lc-badge lc-badge-@payTone">@Model.PaymentStatus</span>
+                    }
+                    else
+                    {
+                        <span>@Model.PaymentStatus</span>
+                    }
+                </strong>
+            </div>
+            <div><span>Tier</span><strong>@Model.TierName</strong></div>
+            <div><span>Amount</span><strong style="color:var(--lc-muted);font-size:12px;">(read-only)</strong> $@Model.AmountUsd</div>
+            <div><span>Platform fee</span><strong style="color:var(--lc-muted);font-size:12px;">(read-only)</strong> $@Model.PlatformFeeUsd</div>
+            <div><span>Received</span><strong>@Model.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</strong></div>
+            @if (Model.ScheduledAt.HasValue)
+            {
+                <div><span>Scheduled at</span><strong>@Model.ScheduledAt.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</strong></div>
+            }
+            @if (!string.IsNullOrEmpty(Model.DeclineReason))
+            {
+                <div><span>Decline reason</span><strong>@Model.DeclineReason</strong></div>
+            }
+        </div>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;gap:16px;">
+        <div class="lc-card">
+            <h2 style="margin-bottom:14px;">Actions</h2>
+
+            @if (isPending)
+            {
+                <form method="post" asp-action="Accept" asp-route-id="@Model.Id" style="margin-bottom:16px;">
+                    @Html.AntiForgeryToken()
+                    <button class="lc-btn lc-btn-primary lc-w-100"
+                            onclick="this.disabled=true;this.textContent='Accepting…'">
+                        <i class="bi bi-check2-circle"></i> Accept booking
+                    </button>
+                </form>
+
+                <div style="border-top:1px solid var(--lc-border-light);padding-top:16px;">
+                    <p style="font-size:13px;color:var(--lc-muted);margin-bottom:12px;">Declining will trigger a refund workflow for the user.</p>
+                    <form method="post" asp-action="Decline" asp-route-id="@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <label style="display:block;margin-bottom:10px;">
+                            Decline reason
+                            <select name="reason" required style="display:block;width:100%;margin-top:4px;">
+                                <option value="Unavailable">Unavailable</option>
+                                <option value="SpecializationMismatch">Specialization mismatch</option>
+                                <option value="AtCapacity">At capacity</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </label>
+                        <label style="display:block;margin-bottom:12px;">
+                            Note <small style="color:var(--lc-muted);">(optional)</small>
+                            <textarea name="note" rows="3" placeholder="Optional context for the user…" style="display:block;width:100%;margin-top:4px;"></textarea>
+                        </label>
+                        <button class="lc-btn lc-btn-danger lc-w-100" id="declineBtn">
+                            <i class="bi bi-x-circle"></i> Decline and queue refund
+                        </button>
+                    </form>
+                    <script>
+                        document.getElementById('declineBtn').closest('form').addEventListener('submit', function(e) {
+                            if (!confirm('Decline this booking? A refund will be queued for the user. This cannot be undone.')) {
+                                e.preventDefault();
+                            }
+                        });
+                    </script>
+                </div>
+            }
+            else if (needsSchedule)
+            {
+                <p style="font-size:13px;color:var(--lc-muted);margin-bottom:14px;">This is a Diamond tier booking. Pick a future session time to confirm.</p>
+                <form method="post" asp-action="Schedule" asp-route-id="@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <label style="display:block;margin-bottom:12px;">
+                        Session date &amp; time
+                        <input name="scheduledAt" type="datetime-local" required
+                               min="@nowIso"
+                               style="display:block;width:100%;margin-top:4px;" />
+                    </label>
+                    <button class="lc-btn lc-btn-primary lc-w-100"
+                            onclick="this.disabled=true;this.textContent='Scheduling\u2026'">
+                        <i class="bi bi-camera-video"></i> Schedule Diamond session
+                    </button>
+                </form>
+            }
+            else if (isScheduled)
+            {
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="lc-badge lc-badge-success" style="font-size:13px;padding:8px 12px;"><i class="bi bi-calendar-check-fill"></i> Session scheduled</span>
+                </div>
+                <p style="margin-top:10px;font-size:13px;color:var(--lc-muted);">@Model.ScheduledAt!.Value.ToLocalTime().ToString("dddd, MMM dd yyyy · HH:mm")</p>
+                <p style="margin-top:4px;font-size:12px;color:var(--lc-muted);">User has been notified of the scheduled time.</p>
+            }
+            else if (isAccepted)
+            {
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="lc-badge lc-badge-success" style="font-size:13px;padding:8px 12px;"><i class="bi bi-check-circle-fill"></i> Booking accepted</span>
+                </div>
+                <p style="margin-top:10px;font-size:13px;color:var(--lc-muted);">User has been notified. No further action required.</p>
+            }
+            else if (isDeclined)
+            {
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="lc-badge lc-badge-danger" style="font-size:13px;padding:8px 12px;"><i class="bi bi-x-circle-fill"></i> Declined</span>
+                    @if (Model.PaymentStatus == "RefundPending")
+                    {
+                        <span class="lc-badge lc-badge-warning" style="font-size:13px;padding:8px 12px;"><i class="bi bi-arrow-counterclockwise"></i> Refund queued</span>
+                    }
+                    else if (Model.PaymentStatus == "Refunded")
+                    {
+                        <span class="lc-badge lc-badge-info" style="font-size:13px;padding:8px 12px;"><i class="bi bi-check2"></i> Refunded</span>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(Model.DeclineReason))
+                {
+                    <p style="margin-top:10px;font-size:13px;color:var(--lc-muted);">Reason: @Model.DeclineReason</p>
+                }
+            }
+            else
+            {
+                <span class="lc-badge">@Model.Status</span>
+            }
+        </div>
+    </aside>
+</div>

@@ -1,0 +1,36 @@
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
+@{
+    ViewData["Title"] = "Doctor Login";
+    var isDev = Env.IsDevelopment();
+}
+<section class="lc-login">
+    <div class="lc-login-hero">
+        <div class="lc-brand lc-brand-xl"><img src="~/logo/LIO.jpeg" alt="LIOS Care" class="lc-logo" /><span><strong>LIOS Care</strong><small>Doctor Dashboard</small></span></div>
+        <h1>Handle quick chats, bookings, and private session reports from one secure workspace.</h1>
+        <p>Built for psychology professionals using LIOS Care. Prioritize SLA-risk requests, accept paid bookings, keep your mobile profile current, and publish patient-facing reports.</p>
+        <div class="lc-login-preview">
+            <div><strong>Quick Chat SLA</strong><span class="lc-badge lc-badge-warning">1h 42m left</span></div>
+            <div><strong>Diamond Booking</strong><span class="lc-badge lc-badge-success">Paid</span></div>
+            <div><strong>Session Report</strong><span class="lc-badge lc-badge-info">Private</span></div>
+        </div>
+    </div>
+    <form class="lc-login-card" method="post" asp-action="Login">
+        @Html.AntiForgeryToken()
+        <h2>Doctor sign in</h2>
+        @if (isDev)
+        {
+            <div class="lc-form-help" style="background:var(--lc-primary-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px;"><i class="bi bi-info-circle"></i> Dev: <strong>doctor@lioscare.local</strong> / <strong>Doctor@123</strong></div>
+        }
+        else
+        {
+            <p>Sign in with your LIOS Care doctor account credentials.</p>
+        }
+        <div asp-validation-summary="ModelOnly" class="lc-form-error"></div>
+        <label>Email</label>
+        <input name="email" type="email" value="@(isDev ? "doctor@lioscare.local" : "")" autocomplete="username" required />
+        <label>Password</label>
+        <input name="password" type="password" value="@(isDev ? "Doctor@123" : "")" autocomplete="current-password" required />
+        <button class="lc-btn lc-btn-primary lc-w-100" type="submit">Continue to dashboard</button>
+        <div class="lc-login-links"><a asp-action="ForgotPassword">Forgot password?</a><span>Role required: doctor</span></div>
+    </form>
+</section>

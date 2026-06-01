@@ -1,0 +1,84 @@
+@model IReadOnlyList<BookingDto>
+@{
+    ViewData["Title"] = "Direct Booking Requests";
+    var status = ViewBag.Status as string ?? "pending";
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>Direct bookings</span>
+        <h1>Requests from users who selected you</h1>
+        <p>Higher-intent paid requests. Accept, decline with reason, or schedule Diamond video sessions.</p>
+    </div>
+</section>
+
+<form class="lc-filterbar" method="get">
+    <select name="status">
+        <option value="pending"  selected="@(status == "pending")">Pending</option>
+        <option value="accepted" selected="@(status == "accepted")">Accepted</option>
+        <option value="declined" selected="@(status == "declined")">Declined</option>
+        <option value="all"      selected="@(status == "all")">All</option>
+    </select>
+    <button class="lc-btn lc-btn-primary">Filter</button>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="lc-card" style="text-align:center;padding:48px 24px;">
+        <i class="bi bi-calendar-x" style="font-size:36px;color:var(--lc-muted);display:block;margin-bottom:12px;"></i>
+        <h2>No bookings</h2>
+        <p style="color:var(--lc-muted);">No @(status == "all" ? "" : status) booking requests at this time.</p>
+    </div>
+}
+else
+{
+    <div class="lc-booking-grid">
+        @foreach (var b in Model)
+        {
+            var statusTone = b.Status switch
+            {
+                "Accepted" => "success",
+                "Declined" => "danger",
+                "Scheduled" => "info",
+                _ => ""
+            };
+            <article class="lc-card lc-booking-card">
+                <div class="lc-booking-top">
+                    <div class="lc-avatar">@b.UserFullName.Substring(0, 1)</div>
+                    <div style="flex:1;min-width:0;">
+                        <h2 style="margin:0 0 2px;">@b.UserFullName</h2>
+                        <p style="margin:0;color:var(--lc-muted);font-size:13px;">@b.TierName &middot; $@b.AmountUsd</p>
+                    </div>
+                    <span class="lc-badge lc-badge-success">@b.PaymentStatus</span>
+                </div>
+
+                <p style="margin:12px 0;color:var(--lc-muted);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                    @(b.Notes ?? "No user note provided.")
+                </p>
+
+                <div class="lc-chip-row" style="margin-bottom:14px;">
+                    @if (!string.IsNullOrEmpty(statusTone))
+                    {
+                        <span class="lc-badge lc-badge-@statusTone">@b.Status</span>
+                    }
+                    else
+                    {
+                        <span class="lc-badge">@b.Status</span>
+                    }
+                    @if (b.RequiresSchedule && b.Status == "Accepted")
+                    {
+                        <span class="lc-badge lc-badge-warning"><i class="bi bi-camera-video"></i> Schedule required</span>
+                    }
+                    @if (b.ScheduledAt.HasValue)
+                    {
+                        <span class="lc-badge lc-badge-info"><i class="bi bi-clock"></i> @b.ScheduledAt.Value.ToLocalTime().ToString("MMM dd, HH:mm")</span>
+                    }
+                </div>
+
+                <a class="lc-btn lc-btn-outline lc-w-100" asp-action="Details" asp-route-id="@b.Id">
+                    Open booking
+                </a>
+            </article>
+        }
+    </div>
+}

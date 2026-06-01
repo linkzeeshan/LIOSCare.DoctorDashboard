@@ -1,0 +1,25 @@
+# Build outputs — never include in image context
+**/bin/
+**/obj/
+
+# IDE and tooling artefacts
+.vs/
+.vscode/
+**/*.user
+**/*.suo
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# Docker files themselves (not needed inside the image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Production secrets — must never be baked into the image
+**/appsettings.Production.json

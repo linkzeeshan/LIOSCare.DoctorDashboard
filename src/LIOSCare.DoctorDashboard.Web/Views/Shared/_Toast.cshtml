@@ -1,0 +1,8 @@
+@if (TempData["Toast"] is string toast)
+{
+    <div class="lc-toast" data-toast><i class="bi bi-check-circle"></i> @toast</div>
+}
+@if (TempData["ToastError"] is string toastError)
+{
+    <div class="lc-toast lc-toast-error" data-toast><i class="bi bi-exclamation-circle"></i> @toastError</div>
+}

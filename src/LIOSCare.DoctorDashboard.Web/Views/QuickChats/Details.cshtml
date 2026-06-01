@@ -1,0 +1,134 @@
+@model QuickChatDto
+@{
+    ViewData["Title"] = "Quick Chat Detail";
+    var isPending  = Model.Status == "Pending";
+    var isAccepted = Model.Status == "Accepted";
+    var isReplied  = Model.Status == "Replied";
+    var isClosed   = Model.Status == "Closed";
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>Quick chat</span>
+        <h1>@Model.UserDisplayName</h1>
+        <p>
+            <span class="lc-badge lc-badge-@Model.SlaTone">@Model.SlaText</span>
+            <span class="lc-badge lc-badge-info" style="margin-left:4px;">@Model.TierName</span>
+            @if (Model.PickedYouSpecifically)
+            {
+                <span class="lc-badge lc-badge-success" style="margin-left:4px;"><i class="bi bi-person-check"></i> Picked you specifically</span>
+            }
+        </p>
+    </div>
+    <a asp-action="Index" class="lc-btn lc-btn-outline"><i class="bi bi-arrow-left"></i> Back to queue</a>
+</section>
+
+<div class="lc-grid lc-grid-2-1">
+
+    <section class="lc-card">
+        <header class="lc-card-head">
+            <h2>User request</h2>
+            <div>
+                <span class="lc-badge lc-badge-@Model.SlaTone">@Model.SlaText</span>
+                <span class="lc-badge lc-badge-info" style="margin-left:4px;">@Model.TierName</span>
+            </div>
+        </header>
+
+        <div class="lc-message lc-message-in">
+            <p>@Model.UserMessage</p>
+            <small>Received @Model.CreatedAt.ToLocalTime().ToString("MMM dd, hh:mm tt")</small>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.DoctorReply))
+        {
+            <div class="lc-message lc-message-out">
+                <p>@Model.DoctorReply</p>
+                <small>Replied @Model.RepliedAt?.ToLocalTime().ToString("MMM dd, hh:mm tt")</small>
+            </div>
+        }
+    </section>
+
+    <aside style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="lc-card">
+            <h2 style="margin-bottom:12px;">Request controls</h2>
+
+            @if (isPending)
+            {
+                <p class="lc-muted" style="margin-bottom:14px;font-size:13px;">Accepting locks this request to your account. If another doctor claims it first, you will be notified.</p>
+                <form method="post" asp-action="Accept" asp-route-id="@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <button class="lc-btn lc-btn-primary lc-w-100"
+                            onclick="this.disabled=true;this.textContent='Accepting…'">
+                        <i class="bi bi-check2-circle"></i> Accept Chat
+                    </button>
+                </form>
+            }
+            else if (isAccepted)
+            {
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span class="lc-badge lc-badge-success" style="font-size:13px;padding:8px 12px;"><i class="bi bi-lock-fill"></i> Accepted by you</span>
+                </div>
+                <p class="lc-muted" style="font-size:13px;">Write your reply below to complete this request.</p>
+            }
+            else if (isReplied)
+            {
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="lc-badge lc-badge-success" style="font-size:13px;padding:8px 12px;"><i class="bi bi-chat-check-fill"></i> Replied</span>
+                </div>
+                <p class="lc-muted" style="margin-top:10px;font-size:13px;">User has been notified on mobile. No further action required.</p>
+            }
+            else if (isClosed)
+            {
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="lc-badge" style="font-size:13px;padding:8px 12px;"><i class="bi bi-x-circle"></i> Closed</span>
+                </div>
+            }
+
+            <div style="border-top:1px solid var(--lc-border-light);margin-top:16px;padding-top:14px;font-size:12px;color:var(--lc-muted);">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>Tier</span><strong>@Model.TierName</strong></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>Created</span><strong>@Model.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</strong></div>
+                @if (Model.AcceptedAt.HasValue)
+                {
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>Accepted</span><strong>@Model.AcceptedAt.Value.ToLocalTime().ToString("MMM dd, HH:mm")</strong></div>
+                }
+                @if (Model.RepliedAt.HasValue)
+                {
+                    <div style="display:flex;justify-content:space-between;"><span>Replied</span><strong>@Model.RepliedAt.Value.ToLocalTime().ToString("MMM dd, HH:mm")</strong></div>
+                }
+            </div>
+        </div>
+
+    </aside>
+</div>
+
+@if (isAccepted)
+{
+    <section class="lc-card lc-form-card" style="margin-top:20px;">
+        <h2>Send reply</h2>
+        <form method="post" asp-action="Reply" asp-route-id="@Model.Id"
+              onsubmit="return lcValidateReply(this)">
+            @Html.AntiForgeryToken()
+            <label>Plain text reply</label>
+            <textarea id="replyText" name="reply" maxlength="4000" rows="7" required
+                      placeholder="Write a clear, supportive reply. Avoid diagnosis if more context is required."></textarea>
+            <div class="lc-form-help">User will be notified on mobile after sending.</div>
+            <button id="replyBtn" class="lc-btn lc-btn-primary" type="submit">
+                <i class="bi bi-send"></i> Send Reply
+            </button>
+        </form>
+    </section>
+}
+
+<script>
+function lcValidateReply(form) {
+    var t = document.getElementById('replyText');
+    if (!t || !t.value.trim()) {
+        t && t.focus();
+        return false;
+    }
+    var btn = document.getElementById('replyBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+    return true;
+}
+</script>

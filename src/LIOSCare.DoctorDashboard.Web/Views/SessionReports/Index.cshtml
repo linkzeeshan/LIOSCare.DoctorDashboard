@@ -1,0 +1,78 @@
+@model IReadOnlyList<SessionReportDto>
+@{ ViewData["Title"] = "Session Reports"; }
+
+<section class="lc-page-head">
+    <div>
+        <span>Private &amp; Confidential</span>
+        <h1>Session reports</h1>
+        <p>Reports are visible to the patient on mobile. Reports older than 24 hours are read-only.</p>
+    </div>
+    <a asp-action="New" class="lc-btn lc-btn-primary"><i class="bi bi-plus-lg"></i> Create report</a>
+</section>
+
+@if (!Model.Any())
+{
+    <div class="lc-card" style="text-align:center;padding:48px 24px;">
+        <i class="bi bi-journal-text" style="font-size:36px;color:var(--lc-muted);display:block;margin-bottom:12px;"></i>
+        <h2>No reports yet</h2>
+        <p style="color:var(--lc-muted);margin-bottom:20px;">Create your first session report after completing an accepted booking.</p>
+        <a asp-action="New" class="lc-btn lc-btn-primary"><i class="bi bi-plus-lg"></i> Create report</a>
+    </div>
+}
+else
+{
+    <section class="lc-card" style="overflow-x:auto;">
+        <table class="lc-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Mood</th>
+                    <th>Goals</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    var delta = r.MoodAfter - r.MoodBefore;
+                    var deltaTone = delta > 0 ? "success" : delta < 0 ? "danger" : "";
+                    <tr>
+                        <td><strong>#@r.SessionNumber</strong></td>
+                        <td>
+                            <strong>@r.UserFullName</strong>
+                            <small style="display:block;color:var(--lc-muted);">Private &amp; Confidential</small>
+                        </td>
+                        <td>@r.SessionDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @r.MoodBefore → @r.MoodAfter
+                            @if (!string.IsNullOrEmpty(deltaTone))
+                            {
+                                <span class="lc-badge lc-badge-@deltaTone" style="margin-left:4px;">
+                                    @(delta > 0 ? "+" : "")@delta
+                                </span>
+                            }
+                        </td>
+                        <td>@r.GoalsCompleted / @r.GoalsTotal</td>
+                        <td>
+                            @if (r.IsEditable)
+                            {
+                                <span class="lc-badge lc-badge-warning">Editable</span>
+                            }
+                            else
+                            {
+                                <span class="lc-badge">Read-only</span>
+                            }
+                        </td>
+                        <td>
+                            <a class="lc-btn lc-btn-outline" style="padding:6px 14px;font-size:13px;"
+                               asp-action="Details" asp-route-id="@r.Id">Open</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+}

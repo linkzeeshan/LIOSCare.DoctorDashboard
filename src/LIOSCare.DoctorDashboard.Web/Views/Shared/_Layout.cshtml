@@ -1,0 +1,57 @@
+@{
+    var title = ViewData["Title"]?.ToString() ?? "Doctor Dashboard";
+    var _ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+    var isAuth = _ctrl is "Auth" or "Home";
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title · LIOS Care</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+</head>
+<body class="lc-body @(isAuth ? "lc-auth-body" : "")">
+@if (isAuth)
+{
+    @RenderBody()
+}
+else
+{
+    <div class="lc-shell">
+        <aside class="lc-sidebar" id="sidebar">
+            <a class="lc-brand" asp-controller="Dashboard" asp-action="Index">
+                <img src="~/logo/LIO.jpeg" alt="LIOS Care" class="lc-logo" />
+                <span><strong>LIOS Care</strong><small>Doctor workspace</small></span>
+            </a>
+            <div class="lc-workspace-chip"><i class="bi bi-shield-check"></i> Psychology Provider</div>
+            <partial name="_Nav" />
+            <div class="lc-user-card">
+                <div class="lc-avatar">@((User.Identity?.Name ?? "Dr").Substring(0,1))</div>
+                <div><strong>@User.Identity?.Name</strong><small>@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</small></div>
+            </div>
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button class="lc-btn lc-btn-ghost lc-w-100" type="submit"><i class="bi bi-box-arrow-left"></i> Sign out</button>
+            </form>
+        </aside>
+        <main class="lc-main">
+            <header class="lc-topbar">
+                <button class="lc-icon-btn lc-mobile-only" data-sidebar-toggle><i class="bi bi-list"></i></button>
+                <div class="lc-search"><i class="bi bi-search"></i><input placeholder="Search requests, bookings, reports..." /></div>
+                <div class="lc-topbar-actions">
+                    <span class="lc-role-badge">Doctor</span>
+                    <button class="lc-icon-btn"><i class="bi bi-bell"></i><span></span></button>
+                    <div class="lc-avatar lc-avatar-sm">@((User.Identity?.Name ?? "D").Substring(0,1))</div>
+                </div>
+            </header>
+            <partial name="_Toast" />
+            @RenderBody()
+        </main>
+    </div>
+}
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

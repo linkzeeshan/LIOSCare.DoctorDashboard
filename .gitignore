@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+.env
+*.user
+*.suo
+*.pfx
+*.pem
+*adminsdk*.json
+appsettings.Production.json
+appsettings.*.local.json

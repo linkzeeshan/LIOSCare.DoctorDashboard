@@ -1,0 +1,76 @@
+@model SessionReportDto
+@{ ViewData["Title"] = "Edit Session Report"; }
+
+<section class="lc-page-head">
+    <div>
+        <span>Edit report</span>
+        <h1>@Model.UserFullName — Session #@Model.SessionNumber</h1>
+        <p>Editing is allowed only within 24 hours of creation.</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="lc-btn lc-btn-outline"><i class="bi bi-arrow-left"></i> Cancel</a>
+</section>
+
+<section class="lc-card lc-form-card">
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="lc-form-grid">
+
+            <label>
+                Session date
+                <input name="sessionDate" type="date" value="@Model.SessionDate.ToString("yyyy-MM-dd")" required style="display:block;margin-top:4px;" />
+            </label>
+
+            <div></div>
+
+            <label>
+                Mood before &nbsp;<strong id="editBeforeValue" style="color:var(--lc-primary);">@Model.MoodBefore</strong> / 10
+                <input name="moodBefore" id="editMoodBefore" type="range" min="1" max="10"
+                       value="@Model.MoodBefore"
+                       oninput="document.getElementById('editBeforeValue').textContent=this.value"
+                       style="display:block;width:100%;margin-top:6px;" />
+            </label>
+
+            <label>
+                Mood after &nbsp;<strong id="editAfterValue" style="color:var(--lc-primary);">@Model.MoodAfter</strong> / 10
+                <input name="moodAfter" id="editMoodAfter" type="range" min="1" max="10"
+                       value="@Model.MoodAfter"
+                       oninput="document.getElementById('editAfterValue').textContent=this.value"
+                       style="display:block;width:100%;margin-top:6px;" />
+            </label>
+
+            <label>
+                Goals completed
+                <input name="goalsCompleted" type="number" value="@Model.GoalsCompleted" min="0" required style="display:block;margin-top:4px;" />
+            </label>
+
+            <label>
+                Goals total
+                <input name="goalsTotal" type="number" value="@Model.GoalsTotal" min="1" required style="display:block;margin-top:4px;" />
+            </label>
+
+        </div>
+
+        <label style="display:block;margin-top:16px;">
+            Progress notes
+            <textarea name="progressNotes" rows="8" maxlength="2000" required style="display:block;width:100%;margin-top:4px;">@Model.ProgressNotes</textarea>
+        </label>
+
+        <label style="display:block;margin-top:14px;">
+            Techniques used <small style="color:var(--lc-muted);">(comma-separated)</small>
+            <input name="techniquesUsed" value="@string.Join(", ", Model.TechniquesUsed)" style="display:block;width:100%;margin-top:4px;" />
+        </label>
+
+        <label style="display:block;margin-top:14px;">
+            Next steps <small style="color:var(--lc-muted);">(visible to patient)</small>
+            <textarea name="nextSteps" rows="4" maxlength="500" style="display:block;width:100%;margin-top:4px;">@Model.NextSteps</textarea>
+        </label>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+            <button class="lc-btn lc-btn-primary" type="submit">
+                <i class="bi bi-floppy"></i> Update report
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="lc-btn lc-btn-ghost">Discard changes</a>
+        </div>
+    </form>
+</section>

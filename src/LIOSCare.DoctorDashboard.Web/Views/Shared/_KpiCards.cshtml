@@ -1,0 +1,10 @@
+@model IReadOnlyList<DashboardKpiDto>
+<div class="lc-kpi-grid">
+@foreach (var kpi in Model)
+{
+    <article class="lc-kpi-card lc-tone-@kpi.Tone">
+        <div class="lc-kpi-icon"><i class="bi @kpi.Icon"></i></div>
+        <div><span>@kpi.Label</span><strong>@kpi.Value</strong><small>@kpi.SubText</small></div>
+    </article>
+}
+</div>

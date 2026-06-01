@@ -1,0 +1,105 @@
+@model SessionReportDto
+@{
+    ViewData["Title"] = "Session Report Detail";
+    var delta = Model.MoodAfter - Model.MoodBefore;
+    var deltaTone = delta > 0 ? "success" : delta < 0 ? "danger" : "";
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>Private &amp; Confidential</span>
+        <h1>@Model.UserFullName — Session #@Model.SessionNumber</h1>
+        <p>
+            @Model.SessionDate.ToString("MMM dd, yyyy")
+            &middot; mood @Model.MoodBefore → @Model.MoodAfter
+            @if (!string.IsNullOrEmpty(deltaTone))
+            {
+                <span class="lc-badge lc-badge-@deltaTone" style="margin-left:4px;">@(delta > 0 ? "+" : "")@delta</span>
+            }
+        </p>
+    </div>
+    <div style="display:flex;gap:8px;">
+        @if (Model.IsEditable)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="lc-btn lc-btn-primary">
+                <i class="bi bi-pencil"></i> Edit within 24h
+            </a>
+        }
+        <a asp-action="Index" class="lc-btn lc-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+</section>
+
+<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;font-size:14px;color:#1e40af;">
+    <i class="bi bi-shield-lock-fill" style="font-size:18px;flex-shrink:0;"></i>
+    <span><strong>Private &amp; Confidential</strong> — This report is visible to the patient on their mobile app only.</span>
+</div>
+
+@if (!Model.IsEditable)
+{
+    <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:14px;padding:12px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;font-size:14px;color:#92400e;">
+        <i class="bi bi-lock-fill" style="font-size:18px;flex-shrink:0;"></i>
+        <span><strong>Read-only</strong> — This report was created more than 24 hours ago and can no longer be edited.</span>
+    </div>
+}
+
+<div class="lc-grid lc-grid-2-1">
+
+    <section class="lc-card">
+        <header class="lc-card-head">
+            <h2>Progress notes</h2>
+            @if (Model.IsEditable)
+            {
+                <span class="lc-badge lc-badge-warning">Editable</span>
+            }
+            else
+            {
+                <span class="lc-badge">Read-only</span>
+            }
+        </header>
+        <p class="lc-large-note" style="margin-bottom:24px;">@Model.ProgressNotes</p>
+
+        <h2 style="margin-bottom:10px;">Next steps</h2>
+        <p style="color:@(string.IsNullOrEmpty(Model.NextSteps) ? "var(--lc-muted)" : "inherit");">
+            @(Model.NextSteps ?? "No next steps recorded.")
+        </p>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;gap:16px;">
+        <div class="lc-card">
+            <h2 style="margin-bottom:14px;">Session metrics</h2>
+            <div class="lc-meta-grid">
+                <div><span>Mood before</span><strong>@Model.MoodBefore / 10</strong></div>
+                <div><span>Mood after</span><strong>@Model.MoodAfter / 10</strong></div>
+                <div>
+                    <span>Change</span>
+                    <strong>
+                        @if (!string.IsNullOrEmpty(deltaTone))
+                        {
+                            <span class="lc-badge lc-badge-@deltaTone">@(delta > 0 ? "+" : "")@delta</span>
+                        }
+                        else
+                        {
+                            <span>No change</span>
+                        }
+                    </strong>
+                </div>
+                <div><span>Goals</span><strong>@Model.GoalsCompleted / @Model.GoalsTotal</strong></div>
+                <div><span>Session date</span><strong>@Model.SessionDate.ToString("MMM dd, yyyy")</strong></div>
+                <div><span>Editable</span><strong>@(Model.IsEditable ? "Yes (< 24h)" : "No")</strong></div>
+            </div>
+
+            @if (Model.TechniquesUsed.Length > 0)
+            {
+                <div style="margin-top:16px;border-top:1px solid var(--lc-border-light);padding-top:14px;">
+                    <h3 style="margin-bottom:8px;font-size:13px;color:var(--lc-muted);text-transform:uppercase;letter-spacing:.05em;">Techniques</h3>
+                    <div class="lc-chip-row">
+                        @foreach (var t in Model.TechniquesUsed)
+                        {
+                            <span class="lc-chip">@t</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </aside>
+</div>

@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Error";
+    var msg = Context.Items["ErrorMessage"]?.ToString();
+    var isLoggedIn = User.Identity?.IsAuthenticated == true;
+}
+<div class="lc-auth-simple">
+    <div style="width:min(460px,calc(100% - 40px))">
+        <div class="lc-brand" style="justify-content:center;margin-bottom:32px;">
+            <img src="~/logo/LIO.jpeg" alt="LIOS Care" class="lc-logo" />
+            <span><strong>LIOS Care</strong><small>Doctor workspace</small></span>
+        </div>
+        <div class="lc-login-card" style="text-align:center;">
+            <div style="width:72px;height:72px;border-radius:22px;background:#fff7ed;display:grid;place-items:center;margin:0 auto 20px;font-size:32px;color:var(--lc-warning);">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <h2 style="margin:0 0 10px;">Something went wrong</h2>
+            <p style="color:var(--lc-text-2);margin-bottom:24px;">@(msg ?? "An unexpected error occurred. Please try again or contact platform support if this continues.")</p>
+            @if (isLoggedIn)
+            {
+                <a asp-controller="Dashboard" asp-action="Index" class="lc-btn lc-btn-primary lc-w-100" style="margin-bottom:10px;">Back to dashboard</a>
+            }
+            else
+            {
+                <a asp-controller="Auth" asp-action="Login" class="lc-btn lc-btn-primary lc-w-100" style="margin-bottom:10px;">Sign in</a>
+            }
+            <div class="lc-login-links" style="margin-top:14px;">
+                <a asp-controller="Auth" asp-action="ForgotPassword">Need help?</a>
+                <span style="color:var(--lc-muted);font-size:12px;">LIOS Care · Doctor Dashboard</span>
+            </div>
+        </div>
+    </div>
+</div>

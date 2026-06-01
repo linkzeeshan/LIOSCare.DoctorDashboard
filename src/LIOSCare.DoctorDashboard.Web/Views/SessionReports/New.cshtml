@@ -1,0 +1,100 @@
+@model CreateSessionReportRequest
+@{
+    ViewData["Title"] = "New Session Report";
+    var bookings = ViewBag.Bookings as IReadOnlyList<BookingDto> ?? Array.Empty<BookingDto>();
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>New report</span>
+        <h1>Private &amp; Confidential session summary</h1>
+        <p>Visible to the patient on mobile. Keep notes supportive, plain text, and clear.</p>
+    </div>
+    <a asp-action="Index" class="lc-btn lc-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+</section>
+
+<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;font-size:14px;color:#1e40af;">
+    <i class="bi bi-shield-lock-fill" style="font-size:18px;flex-shrink:0;"></i>
+    <span><strong>Private &amp; Confidential</strong> — This report will be visible to the patient on their mobile app only. Do not include information intended for other providers.</span>
+</div>
+
+<section class="lc-card lc-form-card">
+    <form method="post" id="reportForm">
+        @Html.AntiForgeryToken()
+
+        <div class="lc-form-grid">
+
+            <label style="grid-column:1/-1;">
+                Linked booking
+                <select name="bookingId" required style="display:block;margin-top:4px;">
+                    <option value="">— Select accepted or completed booking —</option>
+                    @foreach (var b in bookings)
+                    {
+                        <option value="@b.Id">@b.UserFullName — @b.TierName</option>
+                    }
+                </select>
+            </label>
+
+            <label>
+                Session date
+                <input name="sessionDate" type="date" value="@DateTime.UtcNow.ToString("yyyy-MM-dd")" required style="display:block;margin-top:4px;" />
+            </label>
+
+            <div></div>
+
+            <label>
+                Mood before &nbsp;<strong id="beforeValue" style="color:var(--lc-primary);">@(Model?.MoodBefore > 0 ? Model.MoodBefore : 5)</strong> / 10
+                <input name="moodBefore" id="moodBefore" type="range" min="1" max="10"
+                       value="@(Model?.MoodBefore > 0 ? Model.MoodBefore : 5)"
+                       oninput="document.getElementById('beforeValue').textContent=this.value"
+                       style="display:block;width:100%;margin-top:6px;" />
+            </label>
+
+            <label>
+                Mood after &nbsp;<strong id="afterValue" style="color:var(--lc-primary);">@(Model?.MoodAfter > 0 ? Model.MoodAfter : 7)</strong> / 10
+                <input name="moodAfter" id="moodAfter" type="range" min="1" max="10"
+                       value="@(Model?.MoodAfter > 0 ? Model.MoodAfter : 7)"
+                       oninput="document.getElementById('afterValue').textContent=this.value"
+                       style="display:block;width:100%;margin-top:6px;" />
+            </label>
+
+            <label>
+                Goals completed
+                <input name="goalsCompleted" type="number" value="@(Model?.GoalsCompleted > 0 ? Model.GoalsCompleted : 1)" min="0" required style="display:block;margin-top:4px;" />
+            </label>
+
+            <label>
+                Goals total
+                <input name="goalsTotal" type="number" value="@(Model?.GoalsTotal > 0 ? Model.GoalsTotal : 3)" min="1" required style="display:block;margin-top:4px;" />
+            </label>
+
+        </div>
+
+        <label style="display:block;margin-top:16px;">
+            Progress notes
+            <textarea name="progressNotes" rows="8" maxlength="2000" required
+                      placeholder="Summarize session progress, topics discussed, and key observations."
+                      style="display:block;width:100%;margin-top:4px;">@Model?.ProgressNotes</textarea>
+        </label>
+
+        <label style="display:block;margin-top:14px;">
+            Techniques used <small style="color:var(--lc-muted);">(comma-separated)</small>
+            <input name="techniquesUsed" placeholder="CBT, Breathing techniques, Journaling"
+                   value="@(Model?.TechniquesUsed != null ? string.Join(", ", Model.TechniquesUsed) : "")"
+                   style="display:block;width:100%;margin-top:4px;" />
+        </label>
+
+        <label style="display:block;margin-top:14px;">
+            Next steps <small style="color:var(--lc-muted);">(visible to patient)</small>
+            <textarea name="nextSteps" rows="4" maxlength="500"
+                      placeholder="Short, encouraging guidance for the patient's next steps."
+                      style="display:block;width:100%;margin-top:4px;">@Model?.NextSteps</textarea>
+        </label>
+
+        <div style="margin-top:20px;">
+            <button class="lc-btn lc-btn-primary" type="submit">
+                <i class="bi bi-floppy"></i> Save report
+            </button>
+        </div>
+    </form>
+</section>

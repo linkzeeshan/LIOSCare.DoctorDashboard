@@ -1,0 +1,44 @@
+{
+  "ConnectionStrings": {
+    "DoctorPortalDb": "Host=<HOST>;Port=5432;Database=<DB>;Username=<USER>;Password=<PASSWORD>",
+    "SocialPlatformDb": "Host=<HOST>;Port=5432;Database=<DB>;Username=<USER>;Password=<PASSWORD>"
+  },
+  "Jwt": {
+    "Issuer": "lioscare-doctor-dashboard",
+    "Audience": "lioscare-doctor-dashboard",
+    "SigningKey": "<MINIMUM_64_CHARACTER_RANDOM_SECRET>",
+    "AccessTokenMinutes": 15,
+    "RefreshTokenDays": 7
+  },
+  "MessagingService": {
+    "BaseUrl": "https://<messaging-service-host>",
+    "Enabled": true,
+    "ServiceToken": "<SERVICE_TOKEN>"
+  },
+  "NotificationService": {
+    "BaseUrl": "https://<notification-service-host>",
+    "Enabled": true,
+    "InternalApiKey": "<INTERNAL_API_KEY>"
+  },
+  "Email": {
+    "SmtpHost": "<smtp.yourmailprovider.com>",
+    "SmtpPort": 587,
+    "UseSsl": true,
+    "SmtpUser": "<smtp-username>",
+    "SmtpPassword": "<smtp-password>",
+    "FromAddress": "noreply@lioscare.com",
+    "FromName": "LIOS Care"
+  },
+  "PhotoStorage": {
+    "MaxFileSizeBytes": 5242880,
+    "PublicUrlBase": "/uploads/doctors"
+  },
+  "PasswordReset": {
+    "TokenExpiryMinutes": 60,
+    "ResetUrlBase": "https://yourdomain.com"
+  },
+  "Portal": {
+    "AutoMigrateOnStartup": false,
+    "SeedDemoData": false
+  }
+}

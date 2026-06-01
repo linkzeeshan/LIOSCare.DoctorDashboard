@@ -1,0 +1,102 @@
+@model IReadOnlyList<QuickChatDto>
+@{
+    ViewData["Title"] = "Quick Chat Queue";
+    var tier = ViewBag.Tier as string ?? "all";
+    var type = ViewBag.Type as string ?? "all";
+    var sort = ViewBag.Sort as string ?? "sla";
+    var isAvailable = ViewBag.DoctorIsAvailable is bool b && b;
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>Quick Chat Queue</span>
+        <h1>Pick and reply to requests</h1>
+        <p>General pool requests are visible to available doctors. Direct requests are visible only to you.</p>
+    </div>
+    <a asp-action="History" class="lc-btn lc-btn-outline"><i class="bi bi-clock-history"></i> History</a>
+</section>
+
+@if (!isAvailable)
+{
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:center;font-size:14px;color:#92400e;">
+        <i class="bi bi-eye-slash" style="font-size:18px;flex-shrink:0;"></i>
+        <span>Your availability is <strong>off</strong> — general pool requests are hidden. You can still see requests sent directly to you. <a asp-controller="DoctorProfile" asp-action="Index" style="color:#b45309;text-decoration:underline;">Update availability</a></span>
+    </div>
+}
+
+<form class="lc-filterbar" method="get">
+    <select name="tier">
+        <option value="all" selected="@(tier == "all")">All tiers</option>
+        <option value="diamond" selected="@(tier == "diamond")">Diamond</option>
+        <option value="elite" selected="@(tier == "elite")">Elite</option>
+        <option value="standard" selected="@(tier == "standard")">Standard</option>
+    </select>
+    <select name="type">
+        <option value="all" selected="@(type == "all")">All types</option>
+        <option value="for-me" selected="@(type == "for-me")">Sent to me</option>
+        <option value="pool" selected="@(type == "pool")">General pool</option>
+    </select>
+    <select name="sort">
+        <option value="sla" selected="@(sort == "sla")">SLA urgency</option>
+        <option value="oldest" selected="@(sort == "oldest")">Oldest first</option>
+        <option value="tier" selected="@(sort == "tier")">Tier priority</option>
+    </select>
+    <button class="lc-btn lc-btn-primary">Apply</button>
+</form>
+
+<div class="lc-chat-workbench">
+    <section class="lc-card lc-queue-list">
+        @if (!Model.Any())
+        {
+            <div class="lc-empty lc-empty-sm">
+                <i class="bi bi-inbox" style="font-size:36px;color:var(--lc-muted);display:block;margin-bottom:10px;"></i>
+                <h2>Queue is clear</h2>
+                <p>
+                    @if (!isAvailable && type != "for-me")
+                    {
+                        <span>Enable your availability to see general pool requests.</span>
+                    }
+                    else
+                    {
+                        <span>No pending requests match your current filters.</span>
+                    }
+                </p>
+            </div>
+        }
+        @foreach (var c in Model)
+        {
+            <a class="lc-queue-item" asp-action="Details" asp-route-id="@c.Id" style="text-decoration:none;color:inherit;">
+                <div class="lc-avatar" style="flex-shrink:0;">@c.UserDisplayName.Substring(0, 1)</div>
+                <div style="min-width:0;flex:1;">
+                    <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@c.UserDisplayName</strong>
+                    <small style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--lc-muted);margin:2px 0 6px;">@c.UserMessage</small>
+                    <div class="lc-chip-row" style="display:flex;flex-wrap:wrap;gap:4px;">
+                        <span class="lc-badge lc-badge-@c.SlaTone">@c.SlaText</span>
+                        <span class="lc-badge">@c.TierName</span>
+                        @if (c.PickedYouSpecifically)
+                        {
+                            <span class="lc-badge lc-badge-info"><i class="bi bi-person-check"></i> Picked you</span>
+                        }
+                        else
+                        {
+                            <span class="lc-badge" style="background:var(--lc-bg-2);"><i class="bi bi-people"></i> Pool</span>
+                        }
+                    </div>
+                </div>
+                <i class="bi bi-chevron-right" style="color:var(--lc-muted);flex-shrink:0;"></i>
+            </a>
+        }
+    </section>
+
+    <section class="lc-card lc-request-preview" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:320px;">
+        <div style="width:72px;height:72px;border-radius:22px;background:var(--lc-primary-soft);display:grid;place-items:center;margin-bottom:16px;font-size:28px;color:var(--lc-primary);">
+            <i class="bi bi-chat-square-heart"></i>
+        </div>
+        <h2 style="margin-bottom:8px;">Select a request</h2>
+        <p style="color:var(--lc-muted);max-width:260px;">Open a request from the queue to review the user message, accept it, and send a reply.</p>
+        @if (Model.Count > 0)
+        {
+            <p style="color:var(--lc-muted);font-size:13px;margin-top:12px;">@Model.Count request@(Model.Count == 1 ? "" : "s") waiting</p>
+        }
+    </section>
+</div>

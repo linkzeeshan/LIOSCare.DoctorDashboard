@@ -1,0 +1,54 @@
+services:
+
+  db:
+    image: postgres:17-alpine
+    container_name: lios-doctor-dashboard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lioscare_doctor_dashboard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Z@@@a123
+    volumes:
+      - doctor_dashboard_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lioscare_doctor_dashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lios-doctor-dashboard:latest
+    container_name: lios-doctor-dashboard
+    restart: unless-stopped
+    ports:
+      - "4001:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+
+      ConnectionStrings__DoctorPortalDb: "Host=db;Port=5432;Database=lioscare_doctor_dashboard;Username=postgres;Password=CHANGE_THIS_STRONG_DB_PASSWORD;Include Error Detail=false"
+
+      Jwt__Issuer: lioscare-doctor-dashboard
+      Jwt__Audience: lioscare-doctor-dashboard
+      Jwt__SigningKey: 7f1b9c3e8a5d2f4b0e6c8d9a1f3e5b7c2a4d6f8b0e1c3d5a7f9b2c4e6f8a0b1c
+      Jwt__AccessTokenMinutes: "15"
+      Jwt__RefreshTokenDays: "7"
+
+      Portal__AutoMigrateOnStartup: "true"
+      Portal__SeedDemoData: "false"
+
+      QuickChat__MaxConcurrentAcceptedChats: "5"
+      PhotoStorage__PublicUrlBase: /uploads/doctors
+
+    volumes:
+      - doctor_dashboard_uploads:/app/wwwroot/uploads
+
+volumes:
+  doctor_dashboard_pgdata:
+  doctor_dashboard_uploads:

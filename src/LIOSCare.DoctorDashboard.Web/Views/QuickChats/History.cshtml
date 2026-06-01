@@ -1,0 +1,4 @@
+@model IReadOnlyList<QuickChatDto>
+@{ ViewData["Title"] = "Quick Chat History"; }
+<section class="lc-page-head"><div><span>Quick chats</span><h1>History</h1><p>Accepted, replied, and closed requests handled by you.</p></div><a asp-action="Index" class="lc-btn lc-btn-primary">Back to queue</a></section>
+<section class="lc-card"><table class="lc-table"><thead><tr><th>User</th><th>Tier</th><th>Status</th><th>Created</th><th>SLA</th><th></th></tr></thead><tbody>@foreach(var c in Model){<tr><td><strong>@c.UserDisplayName</strong><small>@c.UserMessage</small></td><td>@c.TierName</td><td><span class="lc-badge">@c.Status</span></td><td>@c.CreatedAt.ToLocalTime().ToString("MMM dd")</td><td><span class="lc-badge lc-badge-@c.SlaTone">@c.SlaText</span></td><td><a asp-action="Details" asp-route-id="@c.Id">Open</a></td></tr>}</tbody></table></section>

@@ -1,0 +1,28 @@
+@{ ViewData["Title"] = "Access Denied"; }
+<div class="lc-auth-simple">
+    <div style="width:min(460px,calc(100% - 40px))">
+        <div class="lc-brand" style="justify-content:center;margin-bottom:32px;">
+            <img src="~/logo/LIO.jpeg" alt="LIOS Care" class="lc-logo" />
+            <span><strong>LIOS Care</strong><small>Doctor workspace</small></span>
+        </div>
+        <div class="lc-login-card" style="text-align:center;">
+            <div style="width:72px;height:72px;border-radius:22px;background:#fef2f2;display:grid;place-items:center;margin:0 auto 20px;font-size:32px;color:var(--lc-danger);">
+                <i class="bi bi-shield-exclamation"></i>
+            </div>
+            <h2 style="margin:0 0 10px;">Access Denied</h2>
+            <p style="color:var(--lc-text-2);margin-bottom:24px;">This area is restricted to verified LIOS Care doctor accounts. You do not have the required role to access this page.</p>
+            <a asp-controller="Auth" asp-action="Login" class="lc-btn lc-btn-primary lc-w-100" style="margin-bottom:12px;">Sign in with a doctor account</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form asp-controller="Auth" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="lc-btn lc-btn-outline lc-w-100" type="submit"><i class="bi bi-box-arrow-left"></i> Sign out and switch account</button>
+                </form>
+            }
+            <div class="lc-login-links" style="margin-top:18px;">
+                <a asp-controller="Auth" asp-action="ForgotPassword">Forgot password?</a>
+                <span style="color:var(--lc-muted);font-size:12px;">Role required: doctor</span>
+            </div>
+        </div>
+    </div>
+</div>

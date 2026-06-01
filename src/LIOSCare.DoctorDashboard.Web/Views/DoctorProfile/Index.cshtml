@@ -1,0 +1,146 @@
+@model DoctorProfileDto
+@{
+    ViewData["Title"] = "Doctor Profile";
+    var tiers = ViewBag.ServiceTiers as IReadOnlyList<ServiceTierDto> ?? Array.Empty<ServiceTierDto>();
+    var photoError = TempData["PhotoError"] as string;
+    var currentPhoto = Model.ProfilePhotoUrl;
+}
+
+<section class="lc-page-head">
+    <div>
+        <span>Mobile doctor profile</span>
+        <h1>Profile editor</h1>
+        <p>Keep your profile accurate. Pricing is platform-controlled and read-only for doctors.</p>
+    </div>
+</section>
+
+<div class="lc-grid lc-grid-2-1">
+
+    <section class="lc-card lc-form-card">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <h2>Profile information</h2>
+            <label>Full name</label>
+            <input name="fullName" value="@Model.FullName" maxlength="100" required />
+            <label>Specializations</label>
+            <input name="specializations" value="@string.Join(", ", Model.Specializations)" placeholder="Depression, Trauma" />
+            <label>Years of experience</label>
+            <input name="yearsExperience" type="number" value="@Model.YearsExperience" min="0" max="60" />
+            <label>Bio / About</label>
+            <textarea name="bio" rows="6" maxlength="1000">@Model.Bio</textarea>
+            <label>Certifications</label>
+            <input name="certifications" value="@string.Join(", ", Model.Certifications)" placeholder="CBT Certified, Trauma-Informed Care" />
+            <div class="lc-form-row">
+                <label>
+                    <input type="checkbox" name="isAvailable" value="true" @(Model.IsAvailable ? "checked" : "") />
+                    Available for general quick-chat pool
+                </label>
+            </div>
+            <h3>Education</h3>
+            @for (var i = 0; i < Math.Max(2, Model.Education.Count); i++)
+            {
+                var e = i < Model.Education.Count ? Model.Education[i] : new EducationDto(null, "", "", DateTime.UtcNow.Year);
+                <div class="lc-education-row">
+                    <input name="educationDegree" value="@e.Degree" placeholder="Degree" />
+                    <input name="educationInstitution" value="@e.Institution" placeholder="Institution" />
+                    <input name="educationYear" value="@e.Year" placeholder="Year" type="number" />
+                </div>
+            }
+            <button class="lc-btn lc-btn-primary">Save profile</button>
+        </form>
+    </section>
+
+    <aside style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="lc-card">
+            <h2 style="margin-bottom:16px;">Profile photo</h2>
+
+            @if (!string.IsNullOrEmpty(photoError))
+            {
+                <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#dc2626;font-size:14px;display:flex;gap:8px;align-items:flex-start;">
+                    <i class="bi bi-exclamation-circle" style="margin-top:1px;flex-shrink:0;"></i>
+                    <span>@photoError</span>
+                </div>
+            }
+
+            <div style="display:flex;justify-content:center;margin-bottom:16px;">
+                <div style="position:relative;width:112px;height:112px;">
+                    <img id="photoPreview"
+                         src="@(string.IsNullOrEmpty(currentPhoto) ? "/img/doctor-avatar.svg" : currentPhoto)"
+                         alt="@Model.FullName"
+                         onerror="this.src='/img/doctor-avatar.svg'"
+                         style="width:112px;height:112px;border-radius:50%;object-fit:cover;border:3px solid var(--lc-bg-2);display:block;background:var(--lc-bg-2);" />
+                    <label for="photoFileInput"
+                           style="position:absolute;bottom:2px;right:2px;width:32px;height:32px;border-radius:50%;background:var(--lc-primary);color:#fff;display:grid;place-items:center;cursor:pointer;font-size:14px;border:2px solid var(--lc-card-bg);"
+                           title="Change photo">
+                        <i class="bi bi-camera-fill"></i>
+                    </label>
+                </div>
+            </div>
+
+            <form method="post" asp-action="Photo" enctype="multipart/form-data" id="photoUploadForm">
+                @Html.AntiForgeryToken()
+                <input id="photoFileInput" name="photo" type="file" accept=".jpg,.jpeg,.png"
+                       style="display:none;" onchange="lcHandlePhotoSelect(this)" />
+                <button id="photoUploadBtn" type="submit" class="lc-btn lc-btn-primary lc-w-100"
+                        style="display:none;margin-bottom:8px;"
+                        onclick="this.disabled=true;this.innerHTML='<i class=\'bi bi-cloud-upload\'></i> Uploading…'">
+                    <i class="bi bi-cloud-upload"></i> Upload photo
+                </button>
+            </form>
+
+            <p style="font-size:12px;color:var(--lc-muted);text-align:center;margin:0;">
+                JPG or PNG &middot; max 5 MB &middot; recommended 400&times;400 px
+            </p>
+        </div>
+
+        <div class="lc-card">
+            <div class="lc-profile-preview">
+                <h2>@Model.FullName</h2>
+                <p>@string.Join(" · ", Model.Specializations)</p>
+                <div class="lc-meta-grid">
+                    <div><span>Rating</span><strong>@Model.Rating</strong></div>
+                    <div><span>Patients</span><strong>@Model.PatientCount+</strong></div>
+                    <div><span>Experience</span><strong>@Model.YearsExperience yrs</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lc-card">
+            <h2 style="margin-bottom:4px;">Platform Pricing</h2>
+            <p class="lc-muted" style="font-size:13px;margin-bottom:12px;">Set by LIOS Care &mdash; doctors cannot edit pricing.</p>
+            @foreach (var t in tiers)
+            {
+                <div class="lc-tier-row">
+                    <div><strong>@t.Name</strong><small>@t.ResponseWindowHours-hour SLA</small></div>
+                    <span>$@t.PriceUsd</span>
+                </div>
+            }
+        </div>
+
+    </aside>
+</div>
+
+<script>
+function lcHandlePhotoSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (allowed.indexOf(file.type) === -1) {
+        alert('Only JPG and PNG images are accepted.');
+        input.value = '';
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Photo must be smaller than 5 MB.');
+        input.value = '';
+        return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById('photoPreview').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    document.getElementById('photoUploadBtn').style.display = 'block';
+}
+</script>
