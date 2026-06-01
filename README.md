@@ -1,4 +1,4 @@
-# LIOS Care Doctor Dashboard — Final Code First Portal
+# LIOS Care Doctor Dashboard — Portal
 
 Production-ready ASP.NET Core MVC implementation aligned with **LIOSCare Dashboard TechSpec v1.0**.
 
