@@ -13,7 +13,7 @@ public sealed class DashboardQueryService(DoctorPortalDbContext db, IConfigurati
 {
     public async Task<DashboardSummaryDto> GetDashboardAsync(Guid doctorId, CancellationToken ct = default)
     {
-        var cs = configuration.GetConnectionString("SocialPlatformDb")!;
+        var cs = configuration.GetConnectionString("DoctorPortalDb")!;
         await using var conn = new NpgsqlConnection(cs);
         await conn.OpenAsync(ct);
 

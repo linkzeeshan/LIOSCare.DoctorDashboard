@@ -36,7 +36,7 @@ public static class DependencyInjection
         services.AddDbContext<DoctorPortalDbContext>(options =>
             options
                 .UseNpgsql(
-                    configuration.GetConnectionString("SocialPlatformDb"),
+                    configuration.GetConnectionString("DoctorPortalDb"),
                     npgsql => npgsql.MigrationsHistoryTable(
                         "__ef_migrations_history_doctor_dashboard",
                         "provider"
