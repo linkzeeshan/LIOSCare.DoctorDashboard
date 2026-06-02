@@ -2,10 +2,11 @@ using LIOSCare.DoctorDashboard.Domain.Entities;
 using LIOSCare.DoctorDashboard.Domain.Enums;
 using LIOSCare.DoctorDashboard.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace LIOSCare.DoctorDashboard.Infrastructure.Persistence;
 
-public sealed class DoctorDashboardSeeder(DoctorPortalDbContext db, PasswordHashingService hasher)
+public sealed class DoctorDashboardSeeder(DoctorPortalDbContext db, PasswordHashingService hasher, ILogger<DoctorDashboardSeeder> logger)
 {
     private static readonly Guid DoctorId       = Guid.Parse("30000000-0000-0000-0000-000000000001");
     private static readonly Guid AccountId      = Guid.Parse("20000000-0000-0000-0000-000000000001");
@@ -62,49 +63,68 @@ public sealed class DoctorDashboardSeeder(DoctorPortalDbContext db, PasswordHash
 
     private async Task SeedDoctorAsync(CancellationToken ct)
     {
-        if (await db.DoctorAccounts.AnyAsync(x => x.Email == "doctor@lioscare.local", ct)) return;
+        const string demoEmail    = "doctor@lioscare.local";
+        const string demoPassword = "Doctor@123";
 
-        var account = new DoctorAccount
-        {
-            Id = AccountId,
-            Email = "doctor@lioscare.local",
-            PasswordHash = hasher.Hash("Doctor@123"),
-            EmailConfirmed = true,
-            IsActive = true,
-            CreatedAt = DateTimeOffset.UtcNow.AddMonths(-10),
-            LastLoginAt = null
-        };
+        // ── Account: create or repair ────────────────────────────────────────
+        var account = await db.DoctorAccounts
+            .FirstOrDefaultAsync(x => x.Email == demoEmail, ct);
 
-        var profile = new DoctorProfile
+        if (account is null)
         {
-            Id = DoctorId,
-            DoctorAccountId = AccountId,
-            FullName = "Dr. Julia Adams",
-            Specializations = new[] { "Depression", "Trauma", "Anxiety" },
-            YearsExperience = 10,
-            Rating = 4.8m,
-            PatientCount = 250,
-            Bio = "Licensed psychology professional focused on emotional resilience, trauma recovery, and practical therapy planning.",
-            Certifications = new[] { "CBT Certified", "Trauma-Informed Care", "Mindfulness-Based Therapy" },
-            ProfilePhotoUrl = "/img/doctor-avatar.svg",
-            IsAvailable = true,
-            CreatedAt = DateTimeOffset.UtcNow.AddMonths(-10),
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
+            account = new DoctorAccount
+            {
+                Id             = AccountId,
+                Email          = demoEmail,
+                PasswordHash   = hasher.Hash(demoPassword),
+                EmailConfirmed = true,
+                IsActive       = true,
+                CreatedAt      = DateTimeOffset.UtcNow.AddMonths(-10)
+            };
+            db.DoctorAccounts.Add(account);
+            logger.LogInformation("[Seed] Demo doctor account created: {Email}", demoEmail);
+        }
+        else
+        {
+            account.PasswordHash   = hasher.Hash(demoPassword);
+            account.IsActive       = true;
+            account.EmailConfirmed = true;
+            logger.LogInformation("[Seed] Demo doctor account repaired: {Email}", demoEmail);
+        }
 
-        profile.Education.Add(new DoctorEducation
-        {
-            Id = Guid.NewGuid(), DoctorId = DoctorId,
-            Degree = "Ph.D. in Clinical Psychology", Institution = "Stanford University", Year = 2014
-        });
-        profile.Education.Add(new DoctorEducation
-        {
-            Id = Guid.NewGuid(), DoctorId = DoctorId,
-            Degree = "M.Sc. Psychology", Institution = "Columbia University", Year = 2009
-        });
+        // ── Profile: create if missing (never duplicate) ─────────────────────
+        var profileExists = await db.DoctorProfiles
+            .AnyAsync(x => x.DoctorAccountId == account.Id, ct);
 
-        db.DoctorAccounts.Add(account);
-        db.DoctorProfiles.Add(profile);
+        if (!profileExists)
+        {
+            db.DoctorProfiles.Add(new DoctorProfile
+            {
+                Id               = DoctorId,
+                DoctorAccountId  = account.Id,
+                FullName         = "Dr. Julia Adams",
+                Specializations  = new[] { "Depression", "Trauma", "Anxiety" },
+                YearsExperience  = 10,
+                Rating           = 4.8m,
+                PatientCount     = 250,
+                Bio              = "Licensed psychology professional focused on emotional resilience, trauma recovery, and practical therapy planning.",
+                Certifications   = new[] { "CBT Certified", "Trauma-Informed Care", "Mindfulness-Based Therapy" },
+                ProfilePhotoUrl  = "/img/doctor-avatar.svg",
+                IsAvailable      = true,
+                CreatedAt        = DateTimeOffset.UtcNow.AddMonths(-10),
+                UpdatedAt        = DateTimeOffset.UtcNow
+            });
+            logger.LogInformation("[Seed] Demo doctor profile created for account {AccountId}", account.Id);
+        }
+
+        // ── Education: create if no rows exist for this doctor ───────────────
+        if (!await db.DoctorEducations.AnyAsync(x => x.DoctorId == DoctorId, ct))
+        {
+            db.DoctorEducations.AddRange(
+                new DoctorEducation { Id = Guid.NewGuid(), DoctorId = DoctorId, Degree = "Ph.D. in Clinical Psychology", Institution = "Stanford University", Year = 2014 },
+                new DoctorEducation { Id = Guid.NewGuid(), DoctorId = DoctorId, Degree = "M.Sc. Psychology",            Institution = "Columbia University",  Year = 2009 }
+            );
+        }
     }
 
     // ── Quick Chat Requests ──────────────────────────────────────────────────
