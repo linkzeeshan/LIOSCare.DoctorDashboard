@@ -24,8 +24,6 @@ if (builder.Environment.IsProduction())
         throw new InvalidOperationException(
             "ConnectionStrings__DoctorPortalDb must be set in production. " +
             "Set it via the ConnectionStrings__DoctorPortalDb environment variable.");
-
-    builder.Configuration["Portal:SeedDemoData"] = "false";
 }
 
 builder.Services.AddControllersWithViews(options =>
